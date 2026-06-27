@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
  
-from .models import (
+from courses.models import (
     Subject, Course, Module, Content,
     Text, Video, Image, File, OrderField
 )
