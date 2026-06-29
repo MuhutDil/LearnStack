@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('course/', include('courses.urls')),
     path('', CourseListView.as_view(), name='course_list'),
+    path('learners/', include('learners.urls')),
 ]
 
 if settings.DEBUG:
