@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-{% comment %}
 {% load cache %}
-{% endcomment %}
 
 {% block title %}
   {{ object.title }}
@@ -16,7 +14,7 @@
     <ul id="modules">
       {% for m in object.modules.all %}
         <li data-id="{{ m.id }}" {% if m == module %}class="selected"{% endif %}>
-          <a href="{% url "learner_course_detail_module" object.id m.id %}">
+          <a href="{% url "student_course_detail_module" object.id m.id %}">
             <span>
               Module <span class="order">{{ m.order|add:1 }}</span>
             </span>
@@ -30,17 +28,13 @@
     </ul>
   </div>
   <div class="module">
-    {% comment %}
     {% cache 600 module_contents module %}
-    {% endcomment %}
       {% for content in module.contents.all %}
         {% with item=content.item %}
           <h2>{{ item.title }}</h2>
           {{ item.render }}
         {% endwith %}
       {% endfor %}
-    {% comment %}
     {% endcache %}
-    {% endcomment %}
   </div>
 {% endblock %}
