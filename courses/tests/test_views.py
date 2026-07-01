@@ -6,21 +6,15 @@ from django.urls import reverse
  
 from courses.models import Course, Module, Content, Subject, Text, Video, Image, File
 from courses.views import ManageCourseListView
-
+ 
 User = get_user_model()
  
  
 class OwnerMixinTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
-        cls.other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
+        cls.other_user = User.objects.create_user(username='otheruser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -42,9 +36,12 @@ class OwnerMixinTest(TestCase):
  
     def test_owner_mixin_filters_by_owner(self):
         """Test that OwnerMixin filters queryset by the current user"""
+        factory = RequestFactory()
+        request = factory.get(reverse('manage_course_list'))
+        request.user = self.user
+        
         view = ManageCourseListView()
-        view.request = self.client.get(reverse('manage_course_list'))
-        view.request.user = self.user
+        view.request = request
         
         queryset = view.get_queryset()
         self.assertEqual(queryset.count(), 1)
@@ -54,10 +51,7 @@ class OwnerMixinTest(TestCase):
 class ManageCourseListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.user.user_permissions.add(
             Permission.objects.get(codename='view_course')
         )
@@ -72,8 +66,9 @@ class ManageCourseListViewTest(TestCase):
             slug='test-course',
             overview='Test overview'
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_manage_course_list_view(self):
         """Test that the course list view displays user's courses"""
@@ -84,11 +79,8 @@ class ManageCourseListViewTest(TestCase):
  
     def test_manage_course_list_requires_permission(self):
         """Test that the view requires view_course permission"""
-        user = User.objects.create_user(
-            username='nopermission',
-            password='testpass123'
-        )
-        self.client.login(username='nopermission', password='testpass123')
+        user = User.objects.create_user(username='nopermission')
+        self.client.force_login(user)
         response = self.client.get(reverse('manage_course_list'))
         self.assertEqual(response.status_code, 403)
  
@@ -96,10 +88,7 @@ class ManageCourseListViewTest(TestCase):
 class CourseCreateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.user.user_permissions.add(
             Permission.objects.get(codename='add_course')
         )
@@ -107,8 +96,9 @@ class CourseCreateViewTest(TestCase):
             title='Mathematics',
             slug='mathematics'
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_course_create_view_get(self):
         """Test GET request to create a course"""
@@ -126,17 +116,14 @@ class CourseCreateViewTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('manage_course_list'))
-        self.assertTrue(Course.objects.filter(title='New Course').exists())
+        
         course = Course.objects.get(title='New Course')
         self.assertEqual(course.owner, self.user)
  
     def test_course_create_requires_permission(self):
         """Test that the view requires add_course permission"""
-        user = User.objects.create_user(
-            username='nopermission',
-            password='testpass123'
-        )
-        self.client.login(username='nopermission', password='testpass123')
+        user = User.objects.create_user(username='nopermission')
+        self.client.force_login(user)
         response = self.client.get(reverse('course_create'))
         self.assertEqual(response.status_code, 403)
  
@@ -144,10 +131,7 @@ class CourseCreateViewTest(TestCase):
 class CourseUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.user.user_permissions.add(
             Permission.objects.get(codename='change_course')
         )
@@ -162,8 +146,9 @@ class CourseUpdateViewTest(TestCase):
             slug='test-course',
             overview='Test overview'
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_course_update_view_get(self):
         """Test GET request to update a course"""
@@ -192,11 +177,8 @@ class CourseUpdateViewTest(TestCase):
  
     def test_course_update_requires_permission(self):
         """Test that the view requires change_course permission"""
-        user = User.objects.create_user(
-            username='nopermission',
-            password='testpass123'
-        )
-        self.client.login(username='nopermission', password='testpass123')
+        user = User.objects.create_user(username='nopermission')
+        self.client.force_login(user)
         response = self.client.get(
             reverse('course_edit', kwargs={'pk': self.course.id})
         )
@@ -206,10 +188,7 @@ class CourseUpdateViewTest(TestCase):
 class CourseDeleteViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.user.user_permissions.add(
             Permission.objects.get(codename='delete_course')
         )
@@ -224,8 +203,9 @@ class CourseDeleteViewTest(TestCase):
             slug='test-course',
             overview='Test overview'
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_course_delete_view_get(self):
         """Test GET request to delete a course"""
@@ -246,11 +226,8 @@ class CourseDeleteViewTest(TestCase):
  
     def test_course_delete_requires_permission(self):
         """Test that the view requires delete_course permission"""
-        user = User.objects.create_user(
-            username='nopermission',
-            password='testpass123'
-        )
-        self.client.login(username='nopermission', password='testpass123')
+        user = User.objects.create_user(username='nopermission')
+        self.client.force_login(user)
         response = self.client.get(
             reverse('course_delete', kwargs={'pk': self.course.id})
         )
@@ -260,10 +237,7 @@ class CourseDeleteViewTest(TestCase):
 class CourseModuleUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -287,8 +261,9 @@ class CourseModuleUpdateViewTest(TestCase):
             description='Description 2',
             order=2
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_course_module_update_view_get(self):
         """Test GET request to update course modules"""
@@ -299,14 +274,11 @@ class CourseModuleUpdateViewTest(TestCase):
         self.assertTemplateUsed(response, 'courses/manage/module/formset.html')
         self.assertContains(response, 'Module 1')
         self.assertContains(response, 'Module 2')
-
+ 
     def test_course_module_update_requires_ownership(self):
         """Test that only the course owner can update modules"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.get(
             reverse('course_module_update', kwargs={'pk': self.course.id})
         )
@@ -316,10 +288,7 @@ class CourseModuleUpdateViewTest(TestCase):
 class ContentCreateUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -337,8 +306,9 @@ class ContentCreateUpdateViewTest(TestCase):
             description='Description 1',
             order=1
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_content_create_view_get_text(self):
         """Test GET request to create text content"""
@@ -490,11 +460,8 @@ class ContentCreateUpdateViewTest(TestCase):
  
     def test_content_create_requires_ownership(self):
         """Test that only the course owner can create content"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.get(
             reverse('module_content_create', kwargs={
                 'module_id': self.module.id,
@@ -507,10 +474,7 @@ class ContentCreateUpdateViewTest(TestCase):
 class ContentDeleteViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -537,8 +501,9 @@ class ContentDeleteViewTest(TestCase):
             module=cls.module,
             item=cls.text
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_content_delete_view_post(self):
         """Test POST request to delete content"""
@@ -555,11 +520,8 @@ class ContentDeleteViewTest(TestCase):
  
     def test_content_delete_requires_ownership(self):
         """Test that only the course owner can delete content"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.post(
             reverse('module_content_delete', kwargs={'id': self.content.id})
         )
@@ -569,10 +531,7 @@ class ContentDeleteViewTest(TestCase):
 class ModuleContentListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -596,8 +555,9 @@ class ModuleContentListViewTest(TestCase):
             content='Some content'
         )
         Content.objects.create(module=cls.module, item=cls.text)
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_module_content_list_view(self):
         """Test that the module content list view displays content"""
@@ -610,11 +570,8 @@ class ModuleContentListViewTest(TestCase):
  
     def test_module_content_list_requires_ownership(self):
         """Test that only the course owner can view module contents"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.get(
             reverse('module_content_list', kwargs={'module_id': self.module.id})
         )
@@ -624,10 +581,7 @@ class ModuleContentListViewTest(TestCase):
 class ModuleOrderViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -651,8 +605,9 @@ class ModuleOrderViewTest(TestCase):
             description='Description 2',
             order=2
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_module_order_view_post(self):
         """Test POST request to reorder modules"""
@@ -672,11 +627,8 @@ class ModuleOrderViewTest(TestCase):
  
     def test_module_order_requires_ownership(self):
         """Test that only the course owner can reorder modules"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.post(
             reverse('module_order'),
             data={
@@ -688,7 +640,7 @@ class ModuleOrderViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.module1.refresh_from_db()
         self.module2.refresh_from_db()
-        # Should not have updated because user doesn't own the course
+
         self.assertEqual(self.module1.order, 1)
         self.assertEqual(self.module2.order, 2)
  
@@ -696,10 +648,7 @@ class ModuleOrderViewTest(TestCase):
 class ContentOrderViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        cls.user = User.objects.create_user(username='testuser')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -737,8 +686,9 @@ class ContentOrderViewTest(TestCase):
             item=cls.text2,
             order=2
         )
+        
     def setUp(self):
-        self.client.login(username='testuser', password='testpass123')
+        self.client.force_login(self.user)
  
     def test_content_order_view_post(self):
         """Test POST request to reorder contents"""
@@ -758,11 +708,8 @@ class ContentOrderViewTest(TestCase):
  
     def test_content_order_requires_ownership(self):
         """Test that only the course owner can reorder contents"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            password='testpass123'
-        )
-        self.client.login(username='otheruser', password='testpass123')
+        other_user = User.objects.create_user(username='otheruser')
+        self.client.force_login(other_user)
         response = self.client.post(
             reverse('content_order'),
             data={
@@ -774,6 +721,5 @@ class ContentOrderViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.content1.refresh_from_db()
         self.content2.refresh_from_db()
-        # Should not have updated because user doesn't own the course
         self.assertEqual(self.content1.order, 1)
         self.assertEqual(self.content2.order, 2)
