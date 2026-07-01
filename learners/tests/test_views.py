@@ -1,19 +1,19 @@
-from django.test import TestCase, Client
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
- 
-# Import your models
-from courses.models import Course, Module, Subject
 
+from courses.models import Course, Module, Subject
  
 User = get_user_model()
  
+
+FAST_PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
  
+
+@override_settings(PASSWORD_HASHERS=FAST_PASSWORD_HASHERS)
 class LearnerRegistrationViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.client = Client()
         cls.url = reverse('learner_registration')
  
     def test_registration_get(self):
@@ -28,7 +28,6 @@ class LearnerRegistrationViewTest(TestCase):
             'username': 'newlearner',
             'password1': 'complexpassword123',
             'password2': 'complexpassword123',
-            # Add other required fields for LearnerCreationForm here (e.g., 'email')
         }
         response = self.client.post(self.url, data)
         
@@ -52,15 +51,12 @@ class LearnerRegistrationViewTest(TestCase):
         self.assertTrue(response.context['form'].errors)
  
  
+@override_settings(PASSWORD_HASHERS=FAST_PASSWORD_HASHERS)
 class LearnerEnrollCourseViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.client = Client()
         cls.user = User.objects.create_user(username='learner', password='password')
-        cls.subject = Subject.objects.create(
-            title='Unit Test',
-            slug='unit_test'
-        )
+        cls.subject = Subject.objects.create(title='Unit Test', slug='unit_test')
         cls.course = Course.objects.create(
             owner=cls.user,
             subject=cls.subject,
@@ -82,34 +78,25 @@ class LearnerEnrollCourseViewTest(TestCase):
         data = {'course': self.course.id}
         self.client.post(self.url, data)
         
-        # Verify the user was added to the course learners M2M field
-        self.course.refresh_from_db()
-        self.assertIn(self.user, self.course.learners.all())
+        self.assertTrue(self.course.learners.filter(pk=self.user.pk).exists())
  
  
+@override_settings(PASSWORD_HASHERS=FAST_PASSWORD_HASHERS)
 class LearnerCourseListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.client = Client()
         cls.user = User.objects.create_user(username='learner', password='password')
-        cls.subject = Subject.objects.create(
-            title='Unit Test',
-            slug='unit_test'
-        )
+        cls.subject = Subject.objects.create(title='Unit Test', slug='unit_test')
+        
         cls.course_enrolled = Course.objects.create(
-            owner=cls.user,
-            subject=cls.subject,
-            title='Enrolled Course',
-            slug='enrolled_course',
-            overview='Test overview'
+            owner=cls.user, subject=cls.subject, title='Enrolled Course',
+            slug='enrolled_course', overview='Test overview'
         )
         cls.course_enrolled.learners.add(cls.user)
+        
         cls.course_not_enrolled = Course.objects.create(
-            owner=cls.user,
-            subject=cls.subject,
-            title='Not Enrolled Course',
-            slug='not_enrolled_course',
-            overview='Test overview'
+            owner=cls.user, subject=cls.subject, title='Not Enrolled Course',
+            slug='not_enrolled_course', overview='Test overview'
         )
         cls.url = reverse('learner_course_list')
  
@@ -127,39 +114,32 @@ class LearnerCourseListViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'learners/list.html')
         
-        # Verify queryset filtering
-        courses_in_context = response.context['object_list']
+        courses_in_context = list(response.context['object_list'])
         self.assertIn(self.course_enrolled, courses_in_context)
         self.assertNotIn(self.course_not_enrolled, courses_in_context)
  
  
+@override_settings(
+    PASSWORD_HASHERS=FAST_PASSWORD_HASHERS,
+    CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
+)
 class LearnerCourseDetailViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.client = Client()
         cls.user = User.objects.create_user(username='learner', password='password')
-        cls.subject = Subject.objects.create(
-            title='Unit Test',
-            slug='unit_test'
-        )
+        cls.other_user = User.objects.create_user(username='other', password='password')
+        
+        cls.subject = Subject.objects.create(title='Unit Test', slug='unit_test')
         cls.course = Course.objects.create(
-            owner=cls.user,
-            subject=cls.subject,
-            title='Detail Course',
-            slug='detail_course',
-            overview='Test overview'
+            owner=cls.user, subject=cls.subject, title='Detail Course',
+            slug='detail_course', overview='Test overview'
         )
         cls.course.learners.add(cls.user)
         cls.module = Module.objects.create(
-            course=cls.course,
-            title="Basics",
-            description="Basic concepts"
+            course=cls.course, title="Basics", description="Basic concepts"
         )
         cls.url = reverse('learner_course_detail', args=[cls.course.id])
     
-    def setUp(self):
-        cache.clear()
-
     def test_detail_unauthenticated(self):
         """Test that unauthenticated users are redirected."""
         response = self.client.get(self.url)
@@ -168,9 +148,7 @@ class LearnerCourseDetailViewTest(TestCase):
  
     def test_detail_unenrolled_user_returns_404(self):
         """Test that an authenticated but unenrolled user gets a 404."""
-        other_user = User.objects.create_user(username='other', password='password')
         self.client.login(username='other', password='password')
-        
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
  
