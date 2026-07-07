@@ -69,5 +69,9 @@ class LearnerCourseDetailView(LoginRequiredMixin, DetailView):
             )
         else:
             # get first module
-            context['module'] = course.modules.all()[0]
+            try:
+                context['module'] = course.modules.all()[0]
+            # if mo module
+            except IndexError:
+                pass
         return context
