@@ -224,6 +224,13 @@ class CourseDetailView(DetailView):
     model = Course
     template_name = 'courses/course/detail.html'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # user already enrolled in course
+        if self.object.learners.filter(username=self.request.user.username).exists():
+            return redirect('learner_course_detail', self.object.id)
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['enroll_form'] = CourseEnrollForm(
