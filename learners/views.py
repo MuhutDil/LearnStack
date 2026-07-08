@@ -40,6 +40,20 @@ class LearnerEnrollCourseView(LoginRequiredMixin, FormView):
         )
 
 
+class LearnerUnenrollCourseView(LoginRequiredMixin, FormView):
+    course = None
+    form_class = CourseEnrollForm
+
+    def form_valid(self, form):
+        self.course = form.cleaned_data['course']
+        self.course.learners.remove(self.request.user)
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'learner_course_list'
+        )
+
 
 class LearnerCourseListView(LoginRequiredMixin, ListView):
     model = Course
@@ -60,6 +74,10 @@ class LearnerCourseDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # form to unenroll
+        context['unenroll_form'] = CourseEnrollForm(
+            initial={'course': self.object}
+        )
         # get course object
         course = self.get_object()
         if 'module_id' in self.kwargs:

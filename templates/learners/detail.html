@@ -27,6 +27,11 @@
       {% endfor %}
     </ul>
   </div>
+  <form action="{% url "learner_unenroll_course" %}" method="post">
+    {{ unenroll_form }}
+    {% csrf_token %}
+    <input type="submit" value="Unenroll from course">
+  </form>
   <div class="module">
     {% cache 600 module_contents module %}
       {% for content in module.contents.all %}

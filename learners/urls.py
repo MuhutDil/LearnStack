@@ -15,13 +15,19 @@ urlpatterns = [
         name='learner_enroll_course',
     ),
     path(
+        'unenroll-course/',
+        views.LearnerUnenrollCourseView.as_view(),
+        name='learner_unenroll_course',
+    ),
+    path(
         'courses/',
         views.LearnerCourseListView.as_view(),
         name='learner_course_list',
     ),
     path(
         'course/<pk>/',
-        cache_page(60 * 15)(views.LearnerCourseDetailView.as_view()),
+        # cache_page(60 * 15)(views.LearnerCourseDetailView.as_view()),
+        (views.LearnerCourseDetailView.as_view()),
         name='learner_course_detail',
     ),
     path(
