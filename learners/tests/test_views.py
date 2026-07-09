@@ -26,6 +26,7 @@ class LearnerRegistrationViewTest(TestCase):
         """Test successful registration logs the user in and redirects."""
         data = {
             'username': 'newlearner',
+            'email': 'newlearner@email.com',
             'password1': 'complexpassword123',
             'password2': 'complexpassword123',
         }
@@ -126,8 +127,16 @@ class LearnerCourseListViewTest(TestCase):
 class LearnerCourseDetailViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='learner', password='password')
-        cls.other_user = User.objects.create_user(username='other', password='password')
+        cls.user = User.objects.create_user(
+            username='learner', 
+            email='learner@email.com',
+            password='password'
+        )
+        cls.other_user = User.objects.create_user(
+            username='other',
+            email='other@email.com',
+            password='password'
+        )
         
         cls.subject = Subject.objects.create(title='Unit Test', slug='unit_test')
         cls.course = Course.objects.create(

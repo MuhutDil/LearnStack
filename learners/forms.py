@@ -8,13 +8,13 @@ from .models import Learner
 class LearnerCreationForm(UserCreationForm):
     class Meta:
         model = Learner
-        fields = UserCreationForm.Meta.fields
+        fields = ("username", "email")
 
 
 class LearnerChangeForm(UserChangeForm):
     class Meta:
         model = Learner
-        fields = UserChangeForm.Meta.fields
+        fields = ("username", "email")
 
 
 class CourseEnrollForm(forms.Form):
