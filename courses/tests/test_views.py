@@ -13,8 +13,14 @@ User = get_user_model()
 class OwnerMixinTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
-        cls.other_user = User.objects.create_user(username='otheruser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com'
+            )
+        cls.other_user = User.objects.create_user(
+            username='otheruser',
+            email='otheruser@email.com'
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -51,7 +57,10 @@ class OwnerMixinTest(TestCase):
 class ManageCourseListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.user.user_permissions.add(
             Permission.objects.get(codename='view_course')
         )
@@ -79,8 +88,11 @@ class ManageCourseListViewTest(TestCase):
  
     def test_manage_course_list_requires_permission(self):
         """Test that the view requires view_course permission"""
-        user = User.objects.create_user(username='nopermission')
-        self.client.force_login(user)
+        otheruser = User.objects.create_user(
+            username='nopermission',
+            email='otheruser@email.com',
+            )
+        self.client.force_login(otheruser)
         response = self.client.get(reverse('manage_course_list'))
         self.assertEqual(response.status_code, 403)
  
@@ -88,7 +100,10 @@ class ManageCourseListViewTest(TestCase):
 class CourseCreateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.user.user_permissions.add(
             Permission.objects.get(codename='add_course')
         )
@@ -131,7 +146,10 @@ class CourseCreateViewTest(TestCase):
 class CourseUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.user.user_permissions.add(
             Permission.objects.get(codename='change_course')
         )
@@ -188,7 +206,10 @@ class CourseUpdateViewTest(TestCase):
 class CourseDeleteViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.user.user_permissions.add(
             Permission.objects.get(codename='delete_course')
         )
@@ -237,7 +258,10 @@ class CourseDeleteViewTest(TestCase):
 class CourseModuleUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -288,7 +312,9 @@ class CourseModuleUpdateViewTest(TestCase):
 class ContentCreateUpdateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com')
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -474,7 +500,10 @@ class ContentCreateUpdateViewTest(TestCase):
 class ContentDeleteViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -531,7 +560,10 @@ class ContentDeleteViewTest(TestCase):
 class ModuleContentListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -581,7 +613,10 @@ class ModuleContentListViewTest(TestCase):
 class ModuleOrderViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
@@ -648,7 +683,10 @@ class ModuleOrderViewTest(TestCase):
 class ContentOrderViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@email.com',
+            )
         cls.subject = Subject.objects.create(
             title='Mathematics',
             slug='mathematics'
