@@ -17,8 +17,6 @@
               {% csrf_token %}
             </form>
           </li>
-          {{ user.get_username }}
-          <a class="menu" href="{% url "learner_course_list" %}">Your Courses</a>
         {% else %}
           <li><a href="{% url "login" %}">Sign in</a></li>
         {% endif %}

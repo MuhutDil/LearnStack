@@ -15,6 +15,12 @@
     {% else %}
       All courses
     {% endif %}
+    /
+    <a class="menu" href="{% url "learner_course_list" %}">Your Courses</a>
+    {% if user.is_editor %}
+      /
+      <a href="{% url "manage_course_list" %}">Manage Courses</a>
+    {% endif %}
   </h1>
   <div class="contents">
     <h3>Subjects</h3>
