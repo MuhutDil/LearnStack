@@ -39,6 +39,8 @@
           <h2>{{ item.title }}</h2>
           {{ item.render }}
         {% endwith %}
+      {% empty %}
+        <h2>No content yet</h2>
       {% endfor %}
     {% endcache %}
   </div>
