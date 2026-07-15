@@ -1,13 +1,14 @@
 from courses.models import Course
 from django.contrib.auth import authenticate, login
-from .forms import LearnerCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, FormView
 from django.views.generic.list import ListView
 
-from .forms import CourseEnrollForm
+from .forms import CourseEnrollForm, LearnerCreationForm
+from .redis_utils import save_last_accessed_module, get_last_accessed_module
 
 
 class LearnerRegistrationView(CreateView):
@@ -67,11 +68,11 @@ class LearnerCourseListView(LoginRequiredMixin, ListView):
 class LearnerCourseDetailView(LoginRequiredMixin, DetailView):
     model = Course
     template_name = 'learners/detail.html'
-
+ 
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(learners__in=[self.request.user])
-
+ 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # form to unenroll
@@ -80,16 +81,35 @@ class LearnerCourseDetailView(LoginRequiredMixin, DetailView):
         )
         # get course object
         course = self.get_object()
+        user = self.request.user
+        
         if 'module_id' in self.kwargs:
-            # get current module
-            context['module'] = course.modules.get(
-                id=self.kwargs['module_id']
-            )
+            # Get specified module
+            module = get_object_or_404(course.modules, id=self.kwargs['module_id'])
+            
+            # Save current module as last accessed
+            save_last_accessed_module(user.id, course.id, module.id)
+            context['module'] = module
         else:
-            # get first module
-            try:
-                context['module'] = course.modules.all()[0]
-            # if mo module
-            except IndexError:
-                pass
+            # Try to get last accessed module from Redis
+            last_module_id = get_last_accessed_module(user.id, course.id)
+            
+            if last_module_id:
+                # Resume from where learner left off
+                try:
+                    module = course.modules.get(id=last_module_id)
+                except course.modules.model.DoesNotExist:
+                    # Fallback to first module if saved module no longer exists
+                    module = course.modules.first()
+            else:
+                # No history found, start from first module
+                module = course.modules.first()
+            
+            if module:
+                # Save current module as last accessed
+                save_last_accessed_module(user.id, course.id, module.id)
+            
+            context['module'] = module
+        
         return context
+ 
