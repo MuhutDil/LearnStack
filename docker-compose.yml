@@ -18,8 +18,6 @@ services:
 
   web:
     build: .
-    command: ["./wait-for-it.sh", "db:5432", "--",
-              "gunicorn", "django_project.wsgi", "-b", " 0.0.0.0:8000"]
     restart: always
     volumes:
       - .:/code
@@ -27,8 +25,7 @@ services:
       - "8000:8000"
     environment:
       - DJANGO_SETTINGS_MODULE=django_project.settings.prod
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - SECRET_KEY=enter-your-secret-key
     depends_on:
       - db

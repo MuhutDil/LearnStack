@@ -1,0 +1,37 @@
+databases:
+  - name: postgres_db
+    plan: free
+    databaseName: learnstackdb
+    user: learnstack
+    ipAllowList: []
+    postgresMajorVersion: 17
+
+services:
+  - type: web
+    name: web
+    runtime: docker
+    plan: free 
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres_db
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          name: cache
+          type: redis
+          property: host
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.10
+      - key: DJANGO_SETTINGS_MODULE
+        value: django_project.settings.prod
+    autoDeploy: false
+ 
+  - type: redis
+    name: cache
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
