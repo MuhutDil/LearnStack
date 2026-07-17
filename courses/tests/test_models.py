@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
  
 from courses.models import (
     Subject, Course, Module, Content,
-    Text, Video, Image, File, OrderField
+    Text, Video, Image, File
 )
  
  
@@ -202,7 +201,7 @@ class ModuleModelTest(TestCase):
             title="Introduction"
         )
         module.refresh_from_db()
-        self.assertEqual(str(module), f"0. Introduction")
+        self.assertEqual(str(module), "0. Introduction")
     
     def test_module_ordering_meta(self):
         """Test that modules are ordered by the 'order' field."""

@@ -1,5 +1,3 @@
-import redis
-from django.conf import settings
 from django.core.cache import cache
  
 # # Setting up the Redis connection
