@@ -15,3 +15,7 @@ RUN pip install -r requirements.txt
 
 # Copy the Django project
 COPY . .
+
+# Serve static files, start migrations, load exaple data and start server
+RUN chmod +x /code/docker-entrypoint.sh
+ENTRYPOINT ["/code/docker-entrypoint.sh"]

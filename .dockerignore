@@ -1,0 +1,25 @@
+# Ignore source control directories
+.git
+.gitignore
+
+# Ignore local dependencies and heavy artifacts
+node_modules/
+vendor/
+target/
+
+# Ignore local build artifacts and logs
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Ignore environment configurations and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Ignore development/IDE-specific configurations
+.vscode/
+.idea/
+.DS_Store
