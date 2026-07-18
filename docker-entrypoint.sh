@@ -14,4 +14,4 @@ python manage.py loaddata initial_data.json
 
 # Start server
 echo "---Starting server---"
-./wait-for-it.sh db:5432 -- gunicorn django_project.wsgi -b 0.0.0.0:8000
+gunicorn django_project.wsgi -b 0.0.0.0:8000
