@@ -20,12 +20,13 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
-
-REDIS_URL = 'redis://cache:6379'
+REDIS_HOST = config("REDIS_HOST", default='')
+REDIS_URL = f'redis://{REDIS_HOST}:6379'
 CACHES['default']['LOCATION'] = REDIS_URL
 
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
 SECURE_HSTS_SECONDS = config("SECURE_HSTS_SECONDS",  default=2592000, cast=int) # 30 days
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
 SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
